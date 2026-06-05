@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>鸽子侠</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="bg-blur bg-blur-1"></div>
+    <div class="bg-blur bg-blur-2"></div>
+
+    <main class="app-shell">
+      <header class="hero card">
+        <div class="device-banner">手机和电脑都能打开同一个地址，群聊和摇人会自动同步。</div>
+        <div>
+          <div class="badge">鸽子群 · 邀约 · 群聊 · 弹窗提醒</div>
+          <h1>鸽子侠</h1>
+          <p class="subtitle">一个专为“摇人、组局、放鸽子”设计的轻社交 App。群里能聊天，能群摇人，也能指定召唤某个朋友，收到邀请时会弹出醒目的提示框。</p>
+        </div>
+        <div class="hero-stats">
+          <div class="stat">
+            <span>鸽子群</span>
+            <strong>3</strong>
+          </div>
+          <div class="stat">
+            <span>待响应</span>
+            <strong>5</strong>
+          </div>
+          <div class="stat">
+            <span>本周鸽王</span>
+            <strong>阿飞</strong>
+          </div>
+        </div>
+      </header>
+
+      <section class="content-grid">
+        <section class="card left-panel">
+          <div class="section-title-row">
+            <h2>我的鸽子群</h2>
+            <button class="ghost-btn" id="createGroupBtn">+ 创建群</button>
+          </div>
+          <div class="group-list" id="groupList"></div>
+          <div class="create-form hidden" id="createGroupForm">
+            <input id="groupNameInput" type="text" placeholder="输入自定义群名，例如：今晚必胜开黑团" />
+            <button class="primary-btn" id="confirmCreateGroupBtn">创建</button>
+          </div>
+        </section>
+
+        <section class="card center-panel">
+          <div class="section-title-row">
+            <h2 id="activeGroupTitle">周末开黑群</h2>
+            <span class="pill">在线 8 人</span>
+          </div>
+
+          <div class="chat-window" id="chatWindow"></div>
+
+          <div class="composer">
+            <input id="messageInput" type="text" placeholder="发条消息，或者顺手摇个人..." />
+            <button class="primary-btn" id="sendBtn">发送</button>
+          </div>
+
+          <div class="action-row">
+            <button class="action-btn" id="groupShakeBtn">群摇人</button>
+            <button class="action-btn" id="pickShakeBtn">指定摇人</button>
+            <button class="action-btn" id="progressBtn">鸽子长度</button>
+          </div>
+        </section>
+
+        <section class="card right-panel">
+          <div class="section-title-row">
+            <h2>成员鸽子值</h2>
+            <span class="pill muted">越高越容易鸽</span>
+          </div>
+          <div class="member-list" id="memberList"></div>
+          <div class="tip-box">
+            被摇时会弹出提示框，支持“接受 / 咕咕 / 稍后回复”。
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <div class="modal-backdrop hidden" id="modalBackdrop">
+      <div class="modal card">
+        <div class="modal-head">
+          <h3 id="modalTitle">你被摇了</h3>
+          <button class="icon-btn" id="closeModalBtn">×</button>
+        </div>
+        <p id="modalText"></p>
+        <div class="progress-wrap">
+          <div class="progress-label">
+            <span>鸽子长度</span>
+            <strong id="progressValue">68%</strong>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="secondary-btn" id="acceptBtn">接受</button>
+          <button class="danger-btn" id="gooseBtn">咕咕</button>
+          <button class="ghost-btn" id="laterBtn">稍后回复</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
