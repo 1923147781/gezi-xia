@@ -79,8 +79,9 @@ export default function DashboardPage() {
   }, [currentUser, activeGroup?.id]);
 
   useEffect(() => {
-    if (!supabase) return;
-    const channel = supabase
+    const client = supabase;
+    if (!client) return;
+    const channel = client
       .channel('gezi-xia-live')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'groups' }, refreshAll)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, refreshAll)
@@ -88,7 +89,7 @@ export default function DashboardPage() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'group_members' }, refreshAll)
       .subscribe();
     return () => {
-      supabase.removeChannel(channel);
+      client.removeChannel(channel);
     };
   }, [currentUser, activeGroup?.id]);
 
