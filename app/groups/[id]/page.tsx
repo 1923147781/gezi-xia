@@ -53,20 +53,21 @@ export default function GroupDetailPage() {
   }, [nickname, groupId]);
 
   useEffect(() => {
-    if (!supabase) return;
-    const channel = supabase
+    const client = supabase;
+    if (!client) return;
+    const channel = client
       .channel(`group-${groupId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'messages', filter: `group_id=eq.${groupId}` }, async () => {
-        const { data } = await supabase.from('messages').select('*').eq('group_id', groupId).order('created_at', { ascending: false }).limit(50);
+        const { data } = await client.from('messages').select('*').eq('group_id', groupId).order('created_at', { ascending: false }).limit(50);
         if (data) setMessages(data.map((m) => ({ id: m.id, type: m.message_type as Message['type'], author: m.author, text: m.text })));
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'group_members', filter: `group_id=eq.${groupId}` }, async () => {
-        const { data } = await supabase.from('group_members').select('id, user_id, goose_rate, users(nickname), group_id').eq('group_id', groupId);
+        const { data } = await client.from('group_members').select('id, user_id, goose_rate, users(nickname), group_id').eq('group_id', groupId);
         if (data) setMembers(data.map((m: any) => ({ id: m.id, user_id: m.user_id, nickname: m.users?.nickname ?? '未知用户', goose_rate: m.goose_rate })));
       })
       .subscribe();
     return () => {
-      supabase.removeChannel(channel);
+      client.removeChannel(channel);
     };
   }, [groupId]);
 
