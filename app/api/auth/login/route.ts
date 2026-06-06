@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
+import { authSuccessResponse } from '@/lib/auth/response';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { COOKIE_OPTIONS, NICKNAME_COOKIE, USER_ID_COOKIE } from '@/lib/auth/constants';
 
 export async function POST(request: Request) {
   const { nickname } = await request.json().catch(() => ({ nickname: '' }));
@@ -17,16 +17,17 @@ export async function POST(request: Request) {
 
   const { data, error } = await supabase
     .from('users')
-    .upsert({ nickname: name }, { onConflict: 'nickname' })
     .select('id, nickname, avatar_seed')
-    .single();
+    .eq('nickname', name)
+    .maybeSingle();
 
-  if (error || !data) {
-    return NextResponse.json({ error: error?.message ?? 'login_failed' }, { status: 500 });
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  const response = NextResponse.json({ ok: true, user: data });
-  response.cookies.set(NICKNAME_COOKIE, encodeURIComponent(name), COOKIE_OPTIONS);
-  response.cookies.set(USER_ID_COOKIE, data.id, COOKIE_OPTIONS);
-  return response;
+  if (!data) {
+    return NextResponse.json({ error: 'user_not_found' }, { status: 404 });
+  }
+
+  return authSuccessResponse(data);
 }
