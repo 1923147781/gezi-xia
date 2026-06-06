@@ -2,15 +2,15 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { useParams } from 'next/navigation';
+import { readClientNickname, readClientUserId } from '@/lib/auth/cookies';
+import { supabase } from '@/lib/supabase/client';
 
 type Group = { id: string; name: string; count: number; active: boolean };
 type Message = { id: string; type: 'system' | 'self' | 'normal'; author: string; text: string };
 type MemberRecord = { id: string; user_id: string; nickname: string; goose_rate: number };
 
 export default function GroupDetailPage() {
-  const router = useRouter();
   const params = useParams<{ id: string }>();
   const groupId = params.id;
   const [nickname, setNickname] = useState('');
@@ -25,19 +25,25 @@ export default function GroupDetailPage() {
   const selectedMember = useMemo(() => members.find((m) => m.user_id === selectedTarget) ?? null, [members, selectedTarget]);
 
   useEffect(() => {
-    const stored = localStorage.getItem('gezi-nickname');
-    if (!stored) {
-      router.push('/login');
-      return;
-    }
-    setNickname(stored);
-  }, [router]);
+    const storedNickname = readClientNickname();
+    const storedUserId = readClientUserId();
+    if (storedNickname) setNickname(storedNickname);
+    if (storedUserId) setCurrentUserId(storedUserId);
+  }, []);
 
   useEffect(() => {
     const load = async () => {
       if (!supabase) return;
-      const { data: userData } = await supabase.from('users').select('*').eq('nickname', nickname).limit(1);
-      if (userData?.[0]) setCurrentUserId(userData[0].id);
+
+      let userId = currentUserId;
+      if (!userId && nickname) {
+        const { data: userData } = await supabase.from('users').select('id').eq('nickname', nickname).limit(1);
+        if (userData?.[0]) {
+          userId = userData[0].id;
+          setCurrentUserId(userId);
+        }
+      }
+
       const [groupRes, msgRes, memberRes] = await Promise.all([
         supabase.from('groups').select('*').eq('id', groupId).single(),
         supabase.from('messages').select('*').eq('group_id', groupId).order('created_at', { ascending: false }).limit(50),
@@ -45,12 +51,10 @@ export default function GroupDetailPage() {
       ]);
       if (!groupRes.error && groupRes.data) setGroup(groupRes.data as Group);
       if (!msgRes.error && msgRes.data) setMessages(msgRes.data.map((m) => ({ id: m.id, type: m.message_type as Message['type'], author: m.author, text: m.text })));
-      if (!memberRes.error && memberRes.data) {
-        setMembers(memberRes.data.map((m: any) => ({ id: m.id, user_id: m.user_id, nickname: m.users?.nickname ?? '未知用户', goose_rate: m.goose_rate })));
-      }
+      if (!memberRes.error && memberRes.data) setMembers(memberRes.data.map((m: any) => ({ id: m.id, user_id: m.user_id, nickname: m.users?.nickname ?? '未知用户', goose_rate: m.goose_rate })));
     };
     if (nickname) load();
-  }, [nickname, groupId]);
+  }, [nickname, currentUserId, groupId]);
 
   useEffect(() => {
     const client = supabase;
@@ -96,8 +100,8 @@ export default function GroupDetailPage() {
     <main className="app-shell">
       <div className="topbar card" style={{ marginBottom: 18 }}>
         <Link href="/dashboard" className="ghost-btn">返回仪表盘</Link>
-        <Link href="/invites" className="ghost-btn">邀请中心</Link>
         <Link href="/settings" className="ghost-btn">设置</Link>
+        <Link href="/logout" className="ghost-btn">退出登录</Link>
       </div>
       <section className="card invite-panel" style={{ marginBottom: 18 }}>
         <h1 style={{ marginTop: 0 }}>{group.name}</h1>
